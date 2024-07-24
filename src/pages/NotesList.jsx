@@ -20,7 +20,7 @@ const NotesList = () => {
   };
 
   const addNote = (note) => {
-    const newNote = { ...note, id: Date.now(), createdAt: new Date().toISOString() };
+    const newNote = { ...note, id: Date.now(), createdAt: new Date().toISOString(), comments: [] };
     const updatedNotes = [...notes, newNote];
     saveNotes(updatedNotes);
     setIsAddingNote(false);
