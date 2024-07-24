@@ -57,6 +57,9 @@ const NotesList = () => {
 
         return arrayMove(items, oldIndex, newIndex);
       });
+      
+      // Save the new order of notes
+      saveNotes(notes);
     }
   };
 
