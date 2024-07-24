@@ -1,12 +1,25 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import Login from './Login';
+import NotesList from './NotesList';
 
 const Index = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleLogin = (username, password) => {
+    if (username === 'user' && password === 'pass') {
+      setIsLoggedIn(true);
+    } else {
+      alert('Invalid credentials');
+    }
+  };
+
   return (
-    <div className="flex justify-center items-center">
-      <div className="text-center">
-        <h1 className="text-3xl">Your Blank Canvas</h1>
-        <p>Chat with the agent to start making edits.</p>
-      </div>
+    <div className="container mx-auto p-4">
+      {!isLoggedIn ? (
+        <Login onLogin={handleLogin} />
+      ) : (
+        <NotesList />
+      )}
     </div>
   );
 };
