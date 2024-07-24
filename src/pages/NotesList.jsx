@@ -4,10 +4,19 @@ import { Plus } from 'lucide-react';
 import NoteCard from './NoteCard';
 import NoteForm from './NoteForm';
 import NoteGraph from './NoteGraph';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 const NotesList = () => {
   const [notes, setNotes] = useState([]);
   const [isAddingNote, setIsAddingNote] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     const storedNotes = JSON.parse(localStorage.getItem('notes')) || [];
@@ -20,7 +29,7 @@ const NotesList = () => {
   };
 
   const addNote = (note) => {
-    const newNote = { ...note, id: Date.now(), createdAt: new Date().toISOString(), comments: [] };
+    const newNote = { ...note, id: Date.now().toString(), createdAt: new Date().toISOString(), comments: [] };
     const updatedNotes = [...notes, newNote];
     saveNotes(updatedNotes);
     setIsAddingNote(false);
@@ -38,6 +47,19 @@ const NotesList = () => {
     saveNotes(updatedNotes);
   };
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setNotes((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -51,16 +73,27 @@ const NotesList = () => {
         <NoteForm onSave={addNote} onCancel={() => setIsAddingNote(false)} />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {notes.map(note => (
-          <NoteCard 
-            key={note.id} 
-            note={note} 
-            onUpdate={updateNote}
-            onDelete={deleteNote}
-          />
-        ))}
-      </div>
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext 
+          items={notes.map(note => note.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-4">
+            {notes.map(note => (
+              <NoteCard 
+                key={note.id} 
+                note={note} 
+                onUpdate={updateNote}
+                onDelete={deleteNote}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       <NoteGraph notes={notes} />
     </div>
